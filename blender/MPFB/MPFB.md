@@ -1,61 +1,54 @@
 # MPFB with TalkingHead
 
-> [!IMPORTANT]
-> This document is a Work-In-Progress.
-
 ### Installation
 
-[Blender](https://www.blender.org/) is free and open-source 3D software, and
-[MPFB](https://static.makehumancommunity.org/mpfb.html) is a free and
-open-source Blender extension:
+Install [Blender](https://www.blender.org/) 3D software and
+[MPFB](https://static.makehumancommunity.org/mpfb.html) extension:
 
-- Download and install the latest version of [Blender](https://www.blender.org/)
-- Start Blender
+- Download the latest version of [Blender](https://www.blender.org/)
+- Install and start Blender
 - Select `Edit` | `Preferences` | `Get extensions`, and allow online access
 (if you have not already done so)
 - Search for the "MPFB" extension and click `Install`.
 
 If you now return to Blender's "Layout" view and enable `View` | `Sidebar`,
-you should see a new tab labeled "MPFB v2.0.14" (or later).
+you should see a new tab labeled "MPFB v2.0.15" (or later).
 
 Install MPFB asset packs for skins, clothes, and other 3D assets:
 
 - In Blender, open the "MPFB" tab | `System and resources` | `Web resources` | `Asset packs`
 - Download the "MakeHuman system assets" and all other zipped asset packs
 that you want. No need to download them all as you can always add more later.
-- From "Functional asset packs" section, download "Visemes 02" (Meta/Oculus style visemes)
+- IMPORTANT: From "Functional asset packs" section, download "Visemes 02" (Meta/Oculus style visemes)
 and "Faceunits 01" (ARKit style face units) asset packs
 - Install each pack to MPFB: `Apply assets` | `Library Settings` | `Load pack from zip file`
-- Restart Blender
 
-Install the TalkingHead add-on and assets:
+Install the TalkingHead Blender add-on and assets:
 
-- Download the TalkingHead add-on [talkinghead-addon.py](https://github.com/met4citizen/TalkingHead/blob/main/blender/MPFB/talkinghead-addon.py),
+- Download the latest TalkingHead add-on [talkinghead-addon.py](https://github.com/met4citizen/TalkingHead/blob/main/blender/MPFB/talkinghead-addon.py),
 rig [talkinghead.mpfbskel](https://github.com/met4citizen/TalkingHead/blob/main/blender/MPFB/talkinghead.mpfbskel),
-and weights [talkinghead.mpw](https://github.com/met4citizen/TalkingHead/blob/main/blender/MPFB/talkinghead.mpw)
+and weights [talkinghead.mhw](https://github.com/met4citizen/TalkingHead/blob/main/blender/MPFB/talkinghead.mhw)
 to a local directory. <sup>\[1]</sup>
 - Install the TalkingHead add-on via `Edit` | `Preferences` | `Add-ons` | `Install from Disk...`.
 Open preferences and set the "Data Directory" to the directory where you saved the downloaded files.
-- Workaround to enable refitting with a custom rig: In the MPFB tab, click
-`System and resources` | `System data` to open the system data folder.
-Navigate to "./rigs/standard" and copy "talkinghead.mpfbskel" to "rig.unknown.json"
-and "talkinghead.mhw" to "weights.unknown.json". <sup>\[2]</sup>
+- Open the "MPFB" tab and create a dummy character `New human` | `From scratch` | `Create human`.
+- Load the rig: `Create assets` | `MakeRig` | `Load/Save rig` | `Load rig` | "talkinghead.mpfbskel".
+- Load the weights: `Create assets` | `MakeRig` | `Load/Save rig` | `Load weights` | "talkinghead.mhw".
+- Save the custom rig and weights to library: `Create assets` | `MakeRig` | `Load/Save rig` | Set library rig name to "talkinghead" and identifying bones to e.g. "LeftToe_End" | `Save rig to library`.
+- Now you can delete the dummy character.
 
+Restart the Blender.
+
+---
 
 ### Create A New Avatar
 
-Create a new human model:
-
 - Open the "MPFB" tab and select `New human` | `From scratch`.
-- Specify basic options like Gender, Age, Height and other
-parameters.
+- Specify basic options like Gender, Age, Height and other parameters.
 - Click `Create human`.
 - Make more detailed adjustments to the base model in
 the `Model` section.
-- Load the TalkingHead rig: `Developer` | `Load rig` |
-"talkinghead.mpfbskel".
-- Load the TalkingHead weights : `Developer` | `Load weights` |
-"talkinghead.mhw".
+- Add the TalkingHead rig: `Rigging` | `Add rig` | Custom rig: "Custom: talkinghead" | `Add custom rig`.
 - Navigate to `Apply assets` | `Library Settings`. Make sure all
 the material types are set to "GameEngine (PBR)" and uncheck
 "Material instances".
@@ -65,10 +58,12 @@ eyeslashes, teeth, tongue, hair) and an outfit.
 Make changes to your design and fine-tune. If you later return
 and modify the base model, click `Model` | `Refit assets to basemesh`.
 
-### Poses and Animations
+---
+
+### Poses and Animations (OPTIONAL)
 
 The TalkingHead rig is designed to be Mixamo-compatible.
-You can simply use the Mixamo "X-Bot" to download poses
+You can simply use the Mixamo "X-Bot" character to download poses
 and animations. For most use cases, this approach gives
 a good enough result.
 
@@ -95,6 +90,7 @@ If you want to create character-specific animations, you can
 create an avatar-specific "doll", export it to FBX, upload to
 Mixamo, and download model-specific FBX animations.
 
+---
 
 ### Export as GLB file
 
@@ -108,8 +104,8 @@ Make an export copy:
 - Click `Create export copy`
 - Check that the root object of the new export copy is named "Armature".
 This is the default value for the TalkingHead class-level option `modelRoot`.
-- Optional: Select the armature | `TalkingHead` | `Operations` | `Scale character`.
-- Optional: Select the armature | `TalkingHead` | `Operations` | `Fix bone axes (A-pose)`. <sup>\[3]</sup>
+- OPTIONAL: Select the armature | `TalkingHead` | `Operations` | `Scale character`.
+- OPTIONAL: Select the armature | `TalkingHead` | `Operations` | `Fix bone axes (A-pose)`. <sup>\[2]</sup>
 - Select all | `Object` | `Apply` | `All Transforms`.
 
 Update materials for glTF/GLB:
@@ -119,7 +115,7 @@ remove alpha map textures from `Material` | `Surface` | `Alpha`
 - MASK / Alpha Clip: For meshes that need cutout transparency
 go to `Shading` and add a new Math node before the Principled
 BSDF Alpha input: `Add` | `Utilities` | `Math` | `Math` | "Greater Than".
-Adjust the threshold value until the edges look correct. <sup>\[4]</sup>
+Adjust the threshold value until the edges look correct. <sup>\[3]</sup>
 - BLEND: For meshes that must have partially transparent surfaces,
 leave the material setup as it is.
 
@@ -136,7 +132,9 @@ Export to GLB (settings relative to defaults):
 - Uncheck "Animation".
 - Click `Export`.
 
-### Compression (Optional)
+---
+
+### Compression (OPTIONAL)
 
 Use [glTF-Transform](https://github.com/donmccurdy/glTF-Transform)
 to apply compression:
@@ -147,6 +145,9 @@ gltf-transform optimize avatar.glb avatar-compressed.glb \
   --texture-compress webp
 ```
 
+Note: Currently only the development version of TalkingHead supports meshopt compression.
+
+---
 
 ### Troubleshooting
 
@@ -174,13 +175,10 @@ Mixamo's de facto standard. Minor adjustments were also made
 to the naming (removed mixamorig prefix), spine, neck alignment,
 head tilt, toes, and other places.
 
-\[2] This is a hack. See [MPFB2 issue](https://github.com/makehumancommunity/mpfb2/issues/305).
-This will be fixed in the next MPFB release.
-
-\[3] When designing your model, the bone axes/rolls can change. If these
+\[2] When designing your model, the bone axes/rolls can change. If these
 changes are NOT fixed before export, Blender bakes them into GLB matrices
 and the final model will have twisted body parts such as twisted toes.
 
-\[4] Mask mode is essentially the same as Eevee's "Alpha Clip" blend mode,
+\[3] Mask mode is essentially the same as Eevee's "Alpha Clip" blend mode,
 but in Blender 5.0 it must now be done with shader nodes.
 
