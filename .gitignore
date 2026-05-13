@@ -1,3 +1,5 @@
 
 # Local generated voice/video test media
 examples/media/
+
+node_modules/
