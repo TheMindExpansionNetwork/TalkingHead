@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>MindExpander TalkingHead Autoplay Test</title>
+  <style>
+    html, body { width:100%; height:100%; margin:0; background:#05020d; overflow:hidden; color:white; font-family: Arial, sans-serif; }
+    #avatar { position:absolute; inset:0; background: radial-gradient(circle at 50% 30%, #20204a, #05020d 70%); }
+    #hud { position:absolute; left:24px; top:20px; z-index:10; padding:14px 18px; background:rgba(0,0,0,.58); border:1px solid rgba(132,255,214,.45); border-radius:14px; box-shadow:0 0 26px rgba(0,255,190,.15); }
+    #hud h1 { margin:0 0 8px; font-size:28px; letter-spacing:.04em; color:#84ffd6; }
+    #status { font-size:16px; color:#e8e8ff; }
+    #caption { position:absolute; left:5%; right:5%; bottom:36px; z-index:10; padding:18px 24px; background:rgba(0,0,0,.70); border:1px solid rgba(255,91,198,.5); border-radius:14px; font-size:31px; line-height:1.25; text-align:center; color:#fff6fe; text-shadow:0 2px 10px #000; }
+  </style>
+  <script type="importmap">
+  { "imports": {
+      "three": "../node_modules/three/build/three.module.js",
+      "three/addons/": "../node_modules/three/examples/jsm/",
+      "talkinghead": "../modules/talkinghead.mjs"
+  }}
+  </script>
+</head>
+<body>
+  <div id="avatar"></div>
+  <div id="hud"><h1>MINDEXPANDER TALKINGHEAD TEST</h1><div id="status">booting avatar...</div></div>
+  <div id="caption">Loading MindExpander voice...</div>
+  <script type="module">
+    import { TalkingHead } from "talkinghead";
+    const TEXT = "Yo Mind Expander here. This is the TalkingHead fork test. The GPU should not sit there doing nothing now; we use it on demand, make the avatar talk, then let the meter chill. Uh huh huh, little lip sync goblin, activated.";
+    const AUDIO_URL = "./media/mindexpander_talkinghead_test.wav";
+    let head;
+    const status = (s) => document.getElementById('status').textContent = s;
+    const caption = (s) => document.getElementById('caption').textContent = s;
+    function wordsFromText(text, durationSec) {
+      const words = text.match(/[A-Za-z0-9'’]+|[.,!?;]/g) || [];
+      const spoken = words.filter(w => /[A-Za-z0-9]/.test(w));
+      const step = Math.max(120, (durationSec * 1000 - 400) / Math.max(1, spoken.length));
+      let t = 150;
+      return spoken.map(w => ({ word: w, startMs: (t += step * (/[.!?]/.test(w) ? 1.35 : 1.0)) - step, durMs: Math.min(step * 0.88, 620) }));
+    }
+    function makeAudioObject(buffer, text) {
+      const timed = wordsFromText(text, buffer.duration);
+      return {
+        audio: buffer,
+        words: timed.map(x => x.word),
+        wtimes: timed.map(x => x.startMs),
+        wdurations: timed.map(x => x.durMs),
+        markers: [() => head.lookAtCamera(500), () => head.speakWithHands(), () => head.setMood?.('happy')].filter(Boolean),
+        mtimes: [500, 2200, 9000]
+      };
+    }
+    async function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+    async function blobToBase64(blob){
+      const ab = await blob.arrayBuffer();
+      let binary = '';
+      const bytes = new Uint8Array(ab);
+      const chunk = 0x8000;
+      for (let i=0; i<bytes.length; i+=chunk) binary += String.fromCharCode.apply(null, bytes.subarray(i, i+chunk));
+      return btoa(binary);
+    }
+    window.startTalkingHeadTest = async function() {
+      status('initializing WebGL avatar');
+      const nodeAvatar = document.getElementById('avatar');
+      head = new TalkingHead(nodeAvatar, { lipsyncModules: ['en'], lipsyncLang: 'en', cameraView: 'head', modelFPS: 30, mixerGainSpeech: 3 });
+      await head.showAvatar({
+        url: '../avatars/brunette.glb',
+        body: 'F',
+        avatarMood: 'happy',
+        lipsyncLang: 'en',
+        cameraView: 'head'
+      });
+      status('loading generated MindExpander WAV');
+      const resp = await fetch(AUDIO_URL);
+      if (!resp.ok) throw new Error('audio fetch failed ' + resp.status);
+      const arr = await resp.arrayBuffer();
+      const audioBuffer = await head.audioCtx.decodeAudioData(arr.slice(0));
+      await head.audioCtx.resume();
+      caption(TEXT);
+      await sleep(500);
+      const canvas = nodeAvatar.querySelector('canvas');
+      if (!canvas) throw new Error('no canvas found');
+      const stream = canvas.captureStream(30);
+      const rec = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 4500000 });
+      const chunks = [];
+      rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+      const stopped = new Promise(resolve => rec.onstop = resolve);
+      status('recording canvas + lip sync');
+      rec.start(1000);
+      head.speakAudio(makeAudioObject(audioBuffer, TEXT));
+      await sleep(Math.ceil((audioBuffer.duration + 1.25) * 1000));
+      rec.stop();
+      await stopped;
+      status('recording complete');
+      const blob = new Blob(chunks, { type: 'video/webm' });
+      return { base64: await blobToBase64(blob), bytes: blob.size, duration: audioBuffer.duration };
+    };
+  </script>
+</body>
+</html>
